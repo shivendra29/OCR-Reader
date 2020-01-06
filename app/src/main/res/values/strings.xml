@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">S2KGrader</string>
+    <string name="read_me_button">Read Me</string>
+
+<!--    <string name="quota_message">You have received your quota for this month</string>-->
+<!--    <string name="no_text_message">No text found in this image</string>-->
+<!--    <string name="error_message">Error on reading this message</string>-->
+
+    <!--String related to layout-->
+    <string name="image_taken">Image taken</string>
+</resources>

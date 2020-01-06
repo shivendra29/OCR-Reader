@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "363884105588",
+    "firebase_url": "https://s2kgrader.firebaseio.com",
+    "project_id": "s2kgrader",
+    "storage_bucket": "s2kgrader.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:363884105588:android:d0bcb7ac3f0674e797e621",
+        "android_client_info": {
+          "package_name": "com.example.s2kgrader"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "363884105588-mers67755oeqgdggf1s9tolf5ne0tisu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcUIQa8cKnVl1nLBRdRV3lAU7qjiVd2q0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "363884105588-mers67755oeqgdggf1s9tolf5ne0tisu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
