@@ -32,6 +32,9 @@ import android.widget.TextView;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.vision.CameraSource;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.ml.vision.FirebaseVision;;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.document.FirebaseVisionCloudDocumentRecognizerOptions;
@@ -67,6 +70,8 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
    // TextToSpeech tts;
     private  String imagePath = null;
 
+    DatabaseReference reff;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         System.out.println(AUTHORITY);
@@ -81,6 +86,8 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
 
         //mButton = findViewById(R.id.button);
         //mButton.setOnClickListener(this);
+
+        reff = FirebaseDatabase.getInstance().getReference().child("Marks");
 
     }
 
@@ -179,13 +186,17 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
             public void onSuccess(FirebaseVisionText firebaseVisionText) {
                 String resulttext = firebaseVisionText.getText();
                 textView2.setText(resulttext);
+
+                //FireBase Reference TO BE EDITED LATER!
+                //reff.push().setValue("DEMO TEST");
+                reff.child("Member1").setValue("DEMO TEXT");
             }
         })
                 .addOnFailureListener(
                         new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
-                                Log.e("Error Occured",e.getMessage());
+                                Log.e("Error Occured",e.getMessage());  
 
                             }
                         });
