@@ -11,6 +11,10 @@ android {
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
     buildTypes {
         release {
             minifyEnabled false
@@ -34,6 +38,11 @@ dependencies {
     implementation 'com.google.firebase:firebase-ml-vision-image-label-model:19.0.0'
     implementation 'com.google.firebase:firebase-ml-vision-face-model:19.0.0'
     implementation 'com.google.firebase:firebase-ml-model-interpreter:22.0.1'
+
+    //BarCode
+
+    implementation 'com.google.firebase:firebase-ml-vision:24.0.1'
+    implementation 'com.google.firebase:firebase-ml-vision-barcode-model:16.0.2'
 
     implementation 'com.google.firebase:firebase-database:19.2.0'
 

@@ -16,6 +16,9 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.graphics.Point;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,11 +34,16 @@ import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.gms.vision.CameraSource;
+import com.google.android.gms.vision.MultiProcessor;
+import com.google.android.gms.vision.barcode.BarcodeDetector;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.ml.vision.FirebaseVision;;
+import com.google.firebase.ml.vision.barcode.FirebaseVisionBarcode;
+import com.google.firebase.ml.vision.barcode.FirebaseVisionBarcodeDetector;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.document.FirebaseVisionCloudDocumentRecognizerOptions;
 import com.google.firebase.ml.vision.document.FirebaseVisionDocumentText;
@@ -49,6 +57,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import android.os.Bundle;
@@ -121,6 +130,29 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
                     Log.e("Photo Err",e.getMessage());
                 }
     }
+
+//    public Bitmap getResizedBitmap(Bitmap image, int maxSize) {
+//        int width = image.getWidth();
+//        int height = image.getHeight();
+//
+//        float bitmapRatio = (float) width / (float) height;
+//        if (bitmapRatio > 1) {
+//            width = maxSize;
+//            height = (int) (width / bitmapRatio);
+//        } else {
+//            height = maxSize;
+//            width = (int) (height * bitmapRatio);
+//        }
+//
+//        return Bitmap.createScaledBitmap(image, width, height, true);
+//    }
+
+
+    public Bitmap getResizedBitmap(Bitmap image, int bitmapWidth, int bitmapHeight) {
+        return Bitmap.createScaledBitmap(image, bitmapWidth, bitmapHeight, true);
+    }
+
+
 
     private void getpicture() {
 
@@ -196,10 +228,48 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
                         new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
-                                Log.e("Error Occured",e.getMessage());  
+                                Log.e("Error Occured",e.getMessage());
 
                             }
                         });
+
+
+        //EXPERIMENTAL CODE
+
+        Bitmap qrbitmap = getResizedBitmap(bitmap,480,360);
+
+        FirebaseVisionImage barimage = FirebaseVisionImage.fromBitmap(qrbitmap);
+
+        FirebaseVisionBarcodeDetector barcodeDetector = FirebaseVision.getInstance()
+                .getVisionBarcodeDetector();
+
+        Task<List<FirebaseVisionBarcode>> result = barcodeDetector.detectInImage(image)
+                .addOnSuccessListener(new OnSuccessListener<List<FirebaseVisionBarcode>>() {
+
+                    @Override
+                    public void onSuccess(List<FirebaseVisionBarcode> barcodes) {
+                        // Task completed successfully
+
+                        for (FirebaseVisionBarcode barcode: barcodes) {
+                            Rect bounds = barcode.getBoundingBox();
+                            Point[] corners = barcode.getCornerPoints();
+
+                            String rawValue = barcode.getRawValue();
+
+                            Log.d("QR RESULT",rawValue);
+
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Task failed with an exception
+                        Log.e("Error Occured",e.getMessage());
+                    }
+                });
+
+
 
 
 
