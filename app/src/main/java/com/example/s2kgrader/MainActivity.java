@@ -39,8 +39,11 @@ import com.google.android.gms.vision.CameraSource;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.ml.vision.FirebaseVision;;
 import com.google.firebase.ml.vision.barcode.FirebaseVisionBarcode;
 import com.google.firebase.ml.vision.barcode.FirebaseVisionBarcodeDetector;
@@ -55,6 +58,7 @@ import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -63,23 +67,38 @@ import java.util.Locale;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import static java.lang.Long.parseLong;
+
 public class MainActivity extends AppCompatActivity implements  View.OnClickListener{
 
     ImageView image;
     TextView textView;
     TextView textView2;
 
+    Student student;
 
-    private Button mButton;
     private static final String AUTHORITY = BuildConfig.APPLICATION_ID+".fileprovider";
 
     static final int REQUEST_TAKE_PHOTO = 1;
     private static final int CAMERA_PERMISSION_CODE = 100;
     private static final String TAG = "MainActivity";
-   // TextToSpeech tts;
+
     private  String imagePath = null;
 
     DatabaseReference reff;
+
+    long maxid=0;
+
+    String name;
+    int rollno;
+    long mob;
+    String resulttext;
+    String subject;
+    String marks;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,14 +108,33 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
 
         checkPermission(Manifest.permission.CAMERA, CAMERA_PERMISSION_CODE);
 
+        Intent intent = getIntent();
+        subject = intent.getStringExtra("subject_string");
+        marks = intent.getStringExtra("marks_string");
+
+        Log.d("DATA PASSED",subject);
+        Log.d("DATA PASSED",marks);
+
         image = findViewById(R.id.image_view);
-        textView = findViewById(R.id.text_view);
         textView2 = findViewById(R.id.textView2);
 
-        //mButton = findViewById(R.id.button);
-        //mButton.setOnClickListener(this);
-
         reff = FirebaseDatabase.getInstance().getReference().child("Marks");
+
+        reff.addValueEventListener(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    maxid = (dataSnapshot.child(subject).getChildrenCount());
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
 
     }
 
@@ -126,26 +164,11 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
                 try {
                     // Do something
                     getpicture();
+
                 } catch (Exception e) {
                     Log.e("Photo Err",e.getMessage());
                 }
     }
-
-//    public Bitmap getResizedBitmap(Bitmap image, int maxSize) {
-//        int width = image.getWidth();
-//        int height = image.getHeight();
-//
-//        float bitmapRatio = (float) width / (float) height;
-//        if (bitmapRatio > 1) {
-//            width = maxSize;
-//            height = (int) (width / bitmapRatio);
-//        } else {
-//            height = maxSize;
-//            width = (int) (height * bitmapRatio);
-//        }
-//
-//        return Bitmap.createScaledBitmap(image, width, height, true);
-//    }
 
 
     public Bitmap getResizedBitmap(Bitmap image, int bitmapWidth, int bitmapHeight) {
@@ -200,15 +223,21 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
             Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
             image.setImageBitmap(bitmap);
             extractText(bitmap);
-
         }
+
+
     }
 
     private void extractText(Bitmap bitmap) {
+
+        student = new Student();
+
+        //Bitmap resizedBitmap = getResizedBitmap(bitmap,480,360);
+
         FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmap);
         //Id used instead of 'hi'
         FirebaseVisionCloudTextRecognizerOptions options = new FirebaseVisionCloudTextRecognizerOptions.Builder()
-                .setLanguageHints(Arrays.asList("en", "hi"))
+                .setLanguageHints(Arrays.asList("en", "hi","us"))
                 .build();
         FirebaseVisionTextRecognizer detector = FirebaseVision.getInstance()
                 .getCloudTextRecognizer();
@@ -216,12 +245,14 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
         detector.processImage(image).addOnSuccessListener(new OnSuccessListener<FirebaseVisionText>() {
             @Override
             public void onSuccess(FirebaseVisionText firebaseVisionText) {
-                String resulttext = firebaseVisionText.getText();
-                textView2.setText(resulttext);
+                resulttext = firebaseVisionText.getText();
+                //textView2.setText(resulttext);
+
+                Log.d("Result",resulttext);
 
                 //FireBase Reference TO BE EDITED LATER!
                 //reff.push().setValue("DEMO TEST");
-                reff.child("Member1").setValue("DEMO TEXT");
+
             }
         })
                 .addOnFailureListener(
@@ -232,13 +263,9 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
 
                             }
                         });
-
-
         //EXPERIMENTAL CODE
 
-        Bitmap qrbitmap = getResizedBitmap(bitmap,480,360);
-
-        FirebaseVisionImage barimage = FirebaseVisionImage.fromBitmap(qrbitmap);
+        FirebaseVisionImage barimage = FirebaseVisionImage.fromBitmap(bitmap);
 
         FirebaseVisionBarcodeDetector barcodeDetector = FirebaseVision.getInstance()
                 .getVisionBarcodeDetector();
@@ -258,6 +285,31 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
 
                             Log.d("QR RESULT",rawValue);
 
+                            final JSONObject obj;
+                            try {
+                                obj = new JSONObject(rawValue);
+
+                                name = obj.getString("name");
+                                rollno = Integer.parseInt(obj.getString("rollno"));
+                                mob = parseLong(obj.getString("mob"));
+
+                                Log.d("Result",name);
+                                Log.d("Result", String.valueOf(rollno));
+                                Log.d("Result", String.valueOf(mob));
+
+                                student.setName(name);
+                                student.setRollno(rollno);
+                                student.setPhoneno(mob);
+                                student.setAnswer(resulttext);
+
+
+                                reff.child(subject).child(String.valueOf(maxid)).setValue(student);
+                                //reff.push().child("English").child(String.valueOf(maxid)).setValue(student);
+                                Toast.makeText(MainActivity.this,"Data Added", Toast.LENGTH_SHORT).show();
+
+                            } catch (JSONException e) {
+                                Toast.makeText(MainActivity.this,"Error Scanning ", Toast.LENGTH_LONG).show();
+                            }
                         }
                     }
                 })
@@ -266,15 +318,25 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
                     public void onFailure(@NonNull Exception e) {
                         // Task failed with an exception
                         Log.e("Error Occured",e.getMessage());
+                        Toast.makeText(MainActivity.this,"Error Scanning ", Toast.LENGTH_LONG).show();
                     }
                 });
 
 
+//            student.setName(name);
+//            student.setRollno(rollno);
+//            student.setPhoneno(mob);
+//            student.setAnswer("DEMO ANSWER");
+
+//            reff.child(String.valueOf(maxid+1)).setValue(student);
+        //reff.child("English").child(String.valueOf(maxid+1)).setValue(student);
 
 
 
 
-    }
+
+
+        }
 
 
 }
